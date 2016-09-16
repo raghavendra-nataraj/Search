@@ -1,5 +1,5 @@
 import re
-
+import sys
 class Road():
     def __init__(self,c1,c2,distance,speed,name):
         self.c1 = c1
@@ -35,20 +35,53 @@ def parseFile(file):
                 cityIter[c2][c1] = rd
             else:
                 city = {}
-                city[c2] = rd
+                city[c1] = rd
                 cityIter[c2] = city
         #else:
+
         #    print line
+def addState(state,city):
+    return state[0:len(state)]+[city]
+def is_goal(state):
+    if(state[-1] == endNode):
+        return True
+    return False
 
 def getConnectedCity(city):
     return cityIter[city].keys()
 
+def printGraph():
+    graphFile = open("Graph.dot","w")
+    graphFile.write("digraph tring_graph {\n")
+    for city in cityIter:
+        for city2 in cityIter[city]:
+            graphFile.write("\t"+city+"->"+city2+";\n")
+    graphFile.write("}");
+            
+
 def getDetails(city1,city2):
     return cityIter[city1][city2]
 
-parseFile("road-segments.txt")
-print getConnectedCity("Aberdeen")
-    
+def Successors(state):
+    memory.append(state[-1])
+    return [addState(state,city) for city in getConnectedCity(state[-1]) if city not in memory]
 
-    
-    
+
+startNode = sys.argv[1]
+endNode = sys.argv[2]
+fringe = []
+goals = []
+memory = []
+def search(func):
+    initialState = [startNode]
+    fringe.append(initialState)
+    while len(fringe)>0:
+        for state in Successors(fringe.pop()):
+            if is_goal(state):
+                print state
+                goals.append(state)
+            fringe.append(state)
+
+parseFile("road-segments.txt")
+#print Successors(['Abbot_Village', 'Bingham'])
+search()

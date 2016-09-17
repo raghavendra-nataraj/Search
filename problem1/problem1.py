@@ -1,12 +1,15 @@
 import re
 import sys
 import time
-from Queue import PriorityQueue
 cities = set()
+cityDet = {}
 cityIter = {}
 fringe = []
 goals = []
 depth = 0
+oldDepth = 0
+maxVal = sys.maxint
+
 class Road():
     def __init__(self,c1,c2,distance,speed,name):
         self.c1 = c1
@@ -14,18 +17,44 @@ class Road():
         self.distance = distance
         self.speed = speed
         self.name = name
+class State():
+    def __init__(self,path,distance,depth,time):
+	self.path = path
+	self.depth = depth
+	self.distance = distance
+	self.time = time
 
-def getDistance(state):
-    return sum([cityIter[state[index]][state[index+1]].distance for index in range(0,len(state)-1)])
+class CDetails():
+    def __init__(self,name,state,lat,lon):
+	self.name = name
+	self.state = state
+	self.lat = lat
+	self.lon = lon
+	
 
-def getNodes(state):
-    return len(state)
+def update(state):
+    global maxVal
+    options = {
+	'distance':state.distance,
+	'time' : state.time,
+	'segments' : len(state.path),
+	'scenic' : state.distance
+    }
+    tempValue = options[sys.argv[3]]
+    if maxVal>tempValue:
+	maxVal = tempValue
 
-def getTime(state):
-    return sum([cityIter[state[index]][state[index+1]].distance*cityIter[state[index]][state[index+1]].speed for index in range(0,len(state)-1)])
+def getDistance(state,city):
+    return state.distance<maxVal
 
-def getScenic(state):
-    return state[-1]>55 
+def getNodes(state,city):
+    return len(state.path)<maxVal
+
+def getTime(state,city):
+    return state.time<maxVal
+
+def getScenic(state,city):
+    return cityIter[state.path[-1]][city].speed>55 and state.distance<maxVal
 
 def dfs(state):
     fringe.append(state)
@@ -33,15 +62,26 @@ def dfs(state):
 def bfs(state):
     fringe.insert(0,state)
 
-def ids():
+def astar(state):
     global fringe
-    if len(fringe)==0:
+    fringe.append(state)
+    fringe = sorted(fringe,key=getkey,reverse=True)
+
+def getkey(state):
+    return state.distance
+
+def ids():
+    global fringe,oldDepth
+    if len(fringe)==0 and depth!=oldDepth:
     	startState()
 
 def idsCheck(state):
-    if  sys.argv[4]=="ids" and len(state)>depth:
+    if  sys.argv[4]=="ids" and state.depth>depth:
         return False
     return True
+
+def maxDepth():
+	return max([state.depth for state in fringe])
 
 funcPtr = {
     'distance': getDistance,
@@ -53,8 +93,18 @@ funcPtr = {
 srchPtr = {
     'dfs': dfs,
     'bfs': bfs,
-    'ids': dfs
+    'ids': dfs,
+    'astar': astar
 }
+
+def parseCityFile(file):
+    ifile = open(file,"r")
+    city_data = ifile.readlines()
+    for line in city_data:
+	fields = line.split(' ')
+	cs = fields[0].split(',_')
+	cityDet[cs[0]]= CDetails(cs[0],cs[1],float(fields[1]),float(fields[2]))
+    ifile.close()	
 
 def parseFile(file):
     cityPat = "[\w\&\'\"\./\[\];,-]"
@@ -83,14 +133,17 @@ def parseFile(file):
                 cityIter[c2] = city
         #else:
         #    print line
+    ifile.close()
+
 def startState():
     global depth
     depth+=1
     del fringe[:] 
-    fringe.append([sys.argv[1]])
+    state = State([sys.argv[1]],0,0,0)
+    fringe.append(state)
 
 def addState(state,city):
-    return state[0:len(state)]+[city]
+    return state.path[0:len(state.path)]+[city]
 
 def getConnectedCity(city):
     return cityIter[city].keys()
@@ -106,29 +159,31 @@ def printGraph():
 def getDetails(city1,city2):
     return cityIter[city1][city2]
 
-def Successors(state,function,maxVal):
-    return [addState(state,city) for city in getConnectedCity(state[-1]) if idsCheck(state) and city not in state and function(state)<maxVal]
+def Successors(state,function):
+    global oldDepth
+    if state.depth>oldDepth:
+	oldDepth = state.depth
+    return [State(addState(state,city),\
+	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
+	state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed)\
+	for city in getConnectedCity(state.path[-1]) \
+	if idsCheck(state) and city not in state.path and function(state,city)]
 
 def search(endNode,funcID,srchID):
     global iterDepth
     startState()
     function = funcPtr[funcID]
     srchFunc = srchPtr[srchID]
-    maxVal = sys.maxint
     while len(fringe)>0:
-        for state in Successors(fringe.pop(),function,maxVal):
-            # print fringe
-            #print depth
-            time.sleep(1)
-            if state[-1]==endNode:
-                print state
-                goals.append(state)
-                tempValue = function(state)
-                if maxVal>tempValue:
-                    maxVal = tempValue
+        for state in Successors(fringe.pop(),function):
+            if state.path[-1]==endNode:
+                print state.path
+		print state.time
+                goals.append(state.path)
+                update(state)
             srchFunc(state)
-        #print depth
         srchID=="ids" and ids()
-
 parseFile("road-segments.txt")
+parseCityFile("city-gps.txt")
 search(sys.argv[2],sys.argv[3],sys.argv[4])
+

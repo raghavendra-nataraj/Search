@@ -25,9 +25,8 @@ class State():
 	self.time = time
 
 class CDetails():
-    def __init__(self,name,state,lat,lon):
+    def __init__(self,name,lat,lon):
 	self.name = name
-	self.state = state
 	self.lat = lat
 	self.lon = lon
 	
@@ -45,13 +44,14 @@ def update(state):
 	maxVal = tempValue
 
 def getDistance(state,city):
-    return state.distance<maxVal
+    return (state.distance + cityIter[state.path[-1]][city].distance)<maxVal
 
 def getNodes(state,city):
     return len(state.path)<maxVal
 
 def getTime(state,city):
-    return state.time<maxVal
+    cityDis = cityIter[state.path[-1]][city]
+    return (state.time+ cityDis.distance * cityDis.time)<maxVal
 
 def getScenic(state,city):
     return cityIter[state.path[-1]][city].speed>55 and state.distance<maxVal
@@ -80,8 +80,8 @@ def idsCheck(state):
         return False
     return True
 
-def maxDepth():
-	return max([state.depth for state in fringe])
+#def maxDepth():
+#	return max([state.depth for state in fringe])
 
 funcPtr = {
     'distance': getDistance,
@@ -102,8 +102,7 @@ def parseCityFile(file):
     city_data = ifile.readlines()
     for line in city_data:
 	fields = line.split(' ')
-	cs = fields[0].split(',_')
-	cityDet[cs[0]]= CDetails(cs[0],cs[1],float(fields[1]),float(fields[2]))
+	cityDet[fields[0]]= CDetails(fields[0],float(fields[1]),float(fields[2]))
     ifile.close()	
 
 def parseFile(file):
@@ -114,8 +113,8 @@ def parseFile(file):
     for line in ifile:
         patMat = re.match(patCmp,line)
         if patMat is not None:
-            c1 = patMat.group(1).split(',')[0]
-            c2 = patMat.group(2).split(',')[0]
+            c1 = patMat.group(1)#.split(',')[0]
+            c2 = patMat.group(2)#.split(',')[0]
             cities.add(c1)
             cities.add(c2)
             rd = Road(c1,c2,int(patMat.group(3)),int(patMat.group(4)),patMat.group(5))
@@ -143,19 +142,11 @@ def startState():
     fringe.append(state)
 
 def addState(state,city):
-    return state.path[0:len(state.path)]+[city]
+    return state.path[:]+[city]
 
 def getConnectedCity(city):
     return cityIter[city].keys()
 
-def printGraph():
-    graphFile = open("Graph.dot","w")
-    graphFile.write("digraph tring_graph {\n")
-    for city in cityIter:
-        for city2 in cityIter[city]:
-            graphFile.write("\t"+city+"->"+city2+";\n")
-    graphFile.write("}");
-            
 def getDetails(city1,city2):
     return cityIter[city1][city2]
 
@@ -167,7 +158,7 @@ def Successors(state,function):
 	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
 	state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed)\
 	for city in getConnectedCity(state.path[-1]) \
-	if idsCheck(state) and city not in state.path and function(state,city)]
+	if function(state,city) and city not in state.path and idsCheck(state)]
 
 def search(endNode,funcID,srchID):
     global iterDepth
@@ -176,13 +167,15 @@ def search(endNode,funcID,srchID):
     srchFunc = srchPtr[srchID]
     while len(fringe)>0:
         for state in Successors(fringe.pop(),function):
+	    print state.distance
             if state.path[-1]==endNode:
                 print state.path
-		print state.time
+		print state.distance
                 goals.append(state.path)
                 update(state)
             srchFunc(state)
         srchID=="ids" and ids()
+
 parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
 search(sys.argv[2],sys.argv[3],sys.argv[4])

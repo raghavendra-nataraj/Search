@@ -26,12 +26,11 @@ def parseFile():
                 else:
                     friends[friend] = Set([lst[0]])
 def addPerson(state):
-    sgh =  state.st[state.st.index(table)].append(state.pl.pop())
-    print sgh
+    return state.st[state.st.index(table)].append(state.pl.pop())
                     
 def successors(state):
-    return [State(addPerson(deepcopy(state),table),state.pl) for table in state.st]
-
+    st =  [State(addPerson(deepcopy(state),table),state.pl) for table in state.st]
+    st.append
 def solve(state):
     fringe.append(state)
     print state.st

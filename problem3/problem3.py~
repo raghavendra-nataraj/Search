@@ -1,0 +1,58 @@
+import sys
+from sets import Set
+from copy import deepcopy
+friends = {}
+fringe = []
+people = Set()
+
+
+
+def parseFile():
+    ifile = open(sys.argv[1],"r")
+    content = ifile.readlines()
+    for line in content:
+        lst = line[:len(line)-1].split(" ")
+        people.update(lst)
+        if lst[0] not in friends:
+            friends[lst[0]] = Set(lst[1:])
+        else:
+            friends[lst[0]].update(lst[1:])
+            for friend in friends[lst[0]]:
+                if friend in friends:
+                    friends[friend].add(lst[0])
+                else:
+                    friends[friend] = Set([lst[0]])
+                    
+def addPerson(st,table,person):
+    st[st.index(table)].add(person)
+    return st
+    
+                    
+def successors(state,person):
+    print state
+    st = [addPerson(deepcopy(state),table,person) for table in state]
+    s = Set()
+    s.add(person)
+    new = [s,state[0]]
+    st.append(new)
+    print "\t",st
+    return st
+
+
+def solve(state):
+    state[0].add(people.pop())
+    fringe.append(state)
+    print state
+    while len(fringe)>0:
+        pl = people.pop()
+        print pl
+        for st in successors(fringe.pop(),pl):
+            #if isGoal(state):
+            #    return state
+            fringe.append(st)
+        
+
+parseFile()
+initialState = []
+initialState.append(Set())
+solve(initialState)

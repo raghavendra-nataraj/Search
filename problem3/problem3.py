@@ -63,7 +63,7 @@ def solve(state):
         for st in successors(fringe.pop()):
             if isGoal(st):
                 if len(st.st)<minResult:
-                    print "goal",st.st
+                    print st.st
                     minResult = len(st.st)
             fringe.append(st)
         

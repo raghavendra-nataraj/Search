@@ -45,9 +45,15 @@ def successors(state):
     return []
 
 def isGoal(state):
-    print len(peopleCpy),sum([len(s) for s in state.st])
-    if len(peopleCpy)==sum([len(s) for s in state.st]):
-        print [s for s in state.st]
+    #print len(peopleCpy),sum([len(s) for s in state.st])
+    #if len(peopleCpy)==sum([len(s) for s in state.st]):
+    for table in state.st:
+        for pl in friends:
+            print pl
+            print "\t",table
+            print "\t\t",Set(pl),Set(table)
+    return False
+            
 
 def solve(state):
     fringe.append(state)
@@ -55,7 +61,7 @@ def solve(state):
         for st in successors(fringe.pop()):
            #print st
             if isGoal(st):
-                return state
+                print state.st
             fringe.append(st)
         
 

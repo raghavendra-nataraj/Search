@@ -5,6 +5,7 @@ friends = {}
 fringe = []
 people = Set()
 peopleCpy = Set()
+minResult = sys.maxint
 class State():
     def __init__(self,st,pl):
         self.st = st
@@ -12,6 +13,7 @@ class State():
 
 def parseFile():
     global peopleCpy
+    global friends
     ifile = open(sys.argv[1],"r")
     content = ifile.readlines()
     for line in content:
@@ -21,47 +23,48 @@ def parseFile():
             friends[lst[0]] = Set(lst[1:])
         else:
             friends[lst[0]].update(lst[1:])
-            for friend in friends[lst[0]]:
-                if friend in friends:
-                    friends[friend].add(lst[0])
-                else:
-                    friends[friend] = Set([lst[0]])
+        for friend in friends[lst[0]]:
+            if friend in friends:
+                friends[friend].add(lst[0])
+            else:
+                friends[friend] = Set([lst[0]])
     peopleCpy = deepcopy(people)
 
 def addPerson(state,table,person):
     state.st[state.st.index(table)].append(person)
     return state.st
-                    
+
+def isValid(table,person):
+    return len(Set(friends[person]).intersection(Set(table)))<1
+
 def successors(state):
-    #print state.st
     if len(state.pl)>0:
         person = state.pl.pop()
-        st =  [State(addPerson(deepcopy(state),table,person),deepcopy(state.pl)) for table in state.st if len(table)<int(sys.argv[2])]
+        st =  [State(addPerson(deepcopy(state),table,person),deepcopy(state.pl)) for table in state.st if len(table)<int(sys.argv[2]) and isValid(table,person) and len(state.st)<=minResult]
         state.st.append([person])
         st.append(state)
-        z = [s.st for s in st]
-        #print "\t",z
         return st
     return []
 
 def isGoal(state):
-    #print len(peopleCpy),sum([len(s) for s in state.st])
-    #if len(peopleCpy)==sum([len(s) for s in state.st]):
-    for table in state.st:
-        for pl in friends:
-            print pl
-            print "\t",table
-            print "\t\t",Set(pl),Set(table)
-    return False
+    isTrue = True
+    if len(peopleCpy)==sum([len(s) for s in state.st]):
+        return all([len(Set(friends[friend]).intersection(Set(table)))<1 \
+                   for table in state.st for friend in table])
+    else:
+        isTrue = False
+    return isTrue
             
 
 def solve(state):
+    global minResult
     fringe.append(state)
     while len(fringe)>0:
         for st in successors(fringe.pop()):
-           #print st
             if isGoal(st):
-                print state.st
+                if len(st.st)<minResult:
+                    print "goal",st.st
+                    minResult = len(st.st)
             fringe.append(st)
         
 

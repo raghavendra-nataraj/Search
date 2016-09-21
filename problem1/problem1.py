@@ -4,6 +4,7 @@ import time
 cities = set()
 cityDet = {}
 cityIter = {}
+cityMap = {}
 fringe = []
 goals = []
 depth = 0
@@ -43,18 +44,18 @@ def update(state):
     if maxVal>tempValue:
 	maxVal = tempValue
 
-def getDistance(state,city):
-    return (state.distance + cityIter[state.path[-1]][city].distance)<maxVal
+def getDistance(state,city,cmpVal):
+    return (state.distance + cityIter[state.path[-1]][city].distance)<=cmpVal
 
-def getNodes(state,city):
-    return len(state.path)<maxVal
+def getNodes(state,city,cmpVal):
+    return len(state.path)<CmpVal
 
-def getTime(state,city):
+def getTime(state,city,cmpVal):
     cityDis = cityIter[state.path[-1]][city]
-    return (state.time+ cityDis.distance * cityDis.time)<maxVal
+    return (state.time+ cityDis.distance * cityDis.time)<cmpVal
 
-def getScenic(state,city):
-    return cityIter[state.path[-1]][city].speed>55 and state.distance<maxVal
+def getScenic(state,city,cmpVal):
+    return cityIter[state.path[-1]][city].speed>55 and state.distance<cmpVal
 
 def dfs(state):
     fringe.append(state)
@@ -130,6 +131,7 @@ def parseFile(file):
                 city = {}
                 city[c1] = rd
                 cityIter[c2] = city
+            cityMap[c1+c2] = cityMap[c2+c1] = cityIter[c1][c2].distance
         #else:
         #    print line
     ifile.close()
@@ -150,6 +152,15 @@ def getConnectedCity(city):
 def getDetails(city1,city2):
     return cityIter[city1][city2]
 
+def isValid(state,city,function):
+    hashVal = state.path[0]+city
+    if hashVal in cityMap and not function(state,city,cityMap[hashVal]):
+        return False
+    else:
+        cityMap[hashVal] = state.distance+cityIter[state.path[-1]][city].distance
+        return True
+        
+
 def Successors(state,function):
     global oldDepth
     if state.depth>oldDepth:
@@ -158,7 +169,7 @@ def Successors(state,function):
 	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
 	state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed)\
 	for city in getConnectedCity(state.path[-1]) \
-	if function(state,city) and city not in state.path and idsCheck(state)]
+	    if function(state,city,maxVal) and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 
 def search(endNode,funcID,srchID):
     global iterDepth
@@ -167,7 +178,6 @@ def search(endNode,funcID,srchID):
     srchFunc = srchPtr[srchID]
     while len(fringe)>0:
         for state in Successors(fringe.pop(),function):
-	    print state.distance
             if state.path[-1]==endNode:
                 print state.path
 		print state.distance

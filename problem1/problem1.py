@@ -1,6 +1,7 @@
 import re
 import sys
 import time
+from math import sqrt
 cities = set()
 cityDet = {}
 cityIter = {}
@@ -19,11 +20,12 @@ class Road():
         self.speed = speed
         self.name = name
 class State():
-    def __init__(self,path,distance,depth,time):
+    def __init__(self,path,distance,depth,time,hrst):
 	self.path = path
 	self.depth = depth
 	self.distance = distance
 	self.time = time
+        self.hrst = hrst
 
 class CDetails():
     def __init__(self,name,lat,lon):
@@ -44,18 +46,26 @@ def update(state):
     if maxVal>tempValue:
 	maxVal = tempValue
 
-def getDistance(state,city,cmpVal):
-    return (state.distance + cityIter[state.path[-1]][city].distance)<=cmpVal
+def heuristic(state,city1):
+    if city1 in cityDet:
+        c1 = cityDet[city1]
+    else:
+        return state.hrst
+    c2 = cityDet[sys.argv[2]]
+    return sqrt((c1.lat-c2.lat)**2 + (c1.lon-c2.lon)**2)
 
-def getNodes(state,city,cmpVal):
-    return len(state.path)<CmpVal
+def getDistance(state,city):
+    return (state.distance + cityIter[state.path[-1]][city].distance)
 
-def getTime(state,city,cmpVal):
+def getNodes(state,city):
+    return len(state.path)
+
+def getTime(state,city):
     cityDis = cityIter[state.path[-1]][city]
-    return (state.time+ cityDis.distance * cityDis.time)<cmpVal
+    return (state.time + cityDis.distance * cityDis.speed)
 
-def getScenic(state,city,cmpVal):
-    return cityIter[state.path[-1]][city].speed>55 and state.distance<cmpVal
+def getScenic(state,city):
+    return cityIter[state.path[-1]][city].speed>55 and state.distance
 
 def dfs(state):
     fringe.append(state)
@@ -69,7 +79,7 @@ def astar(state):
     fringe = sorted(fringe,key=getkey,reverse=True)
 
 def getkey(state):
-    return state.distance
+    return state.distance + state.hrst
 
 def ids():
     global fringe,oldDepth
@@ -131,7 +141,13 @@ def parseFile(file):
                 city = {}
                 city[c1] = rd
                 cityIter[c2] = city
-            cityMap[c1+c2] = cityMap[c2+c1] = cityIter[c1][c2].distance
+            options = {
+                'distance':cityIter[c1][c2].distance,
+                'time' : cityIter[c1][c2].distance*cityIter[c1][c2].speed,
+                'segments' : 1,
+                'scenic' : cityIter[c1][c2].distance
+            }
+            cityMap[c1+c2] = cityMap[c2+c1] = options[sys.argv[3]]
         #else:
         #    print line
     ifile.close()
@@ -140,7 +156,7 @@ def startState():
     global depth
     depth+=1
     del fringe[:] 
-    state = State([sys.argv[1]],0,0,0)
+    state = State([sys.argv[1]],0,0,0,heuristic(None,sys.argv[1]))
     fringe.append(state)
 
 def addState(state,city):
@@ -154,12 +170,15 @@ def getDetails(city1,city2):
 
 def isValid(state,city,function):
     hashVal = state.path[0]+city
-    if hashVal in cityMap and not function(state,city,cityMap[hashVal]):
-        return False
+    if hashVal in cityMap:
+        if not function(state,city)<=cityMap[hashVal]:
+            return False
+        else:
+            cityMap[hashVal] = function(state,city)
+            return True
     else:
-        cityMap[hashVal] = state.distance+cityIter[state.path[-1]][city].distance
+        cityMap[hashVal] = function(state,city)
         return True
-        
 
 def Successors(state,function):
     global oldDepth
@@ -167,9 +186,9 @@ def Successors(state,function):
 	oldDepth = state.depth
     return [State(addState(state,city),\
 	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
-	state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed)\
+	          state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed,heuristic(state,city))\
 	for city in getConnectedCity(state.path[-1]) \
-	    if function(state,city,maxVal) and city not in state.path and isValid(state,city,function) and idsCheck(state)]
+	    if function(state,city)<=maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 
 def search(endNode,funcID,srchID):
     global iterDepth

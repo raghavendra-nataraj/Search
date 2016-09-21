@@ -7,11 +7,10 @@ cityDet = {}
 cityIter = {}
 cityMap = {}
 fringe = []
-goals = []
 depth = 0
 oldDepth = 0
 maxVal = sys.maxint
-
+dScenic = sys.maxint
 class Road():
     def __init__(self,c1,c2,distance,speed,name):
         self.c1 = c1
@@ -35,16 +34,18 @@ class CDetails():
 	
 
 def update(state):
-    global maxVal
+    global maxVal,dScenic
     options = {
 	'distance':state.distance,
 	'time' : state.time,
 	'segments' : len(state.path),
-	'scenic' : state.distance
+	'scenic' : len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])
     }
     tempValue = options[sys.argv[3]]
     if maxVal>tempValue:
 	maxVal = tempValue
+    if state.distance<dScenic:
+        dScenic = state.distance
 
 def heuristic(state,city1):
     if city1 in cityDet:
@@ -65,7 +66,13 @@ def getTime(state,city):
     return (state.time + cityDis.distance * cityDis.speed)
 
 def getScenic(state,city):
-    return cityIter[state.path[-1]][city].speed>55 and state.distance
+    leng =  len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])
+    if leng==maxVal:
+        if state.distance>dScenic:
+            return sys.maxint
+    else:
+        return leng
+    #return getDistance(state,city)
 
 def dfs(state):
     fringe.append(state)
@@ -90,9 +97,6 @@ def idsCheck(state):
     if  sys.argv[4]=="ids" and state.depth>depth:
         return False
     return True
-
-#def maxDepth():
-#	return max([state.depth for state in fringe])
 
 funcPtr = {
     'distance': getDistance,
@@ -145,7 +149,7 @@ def parseFile(file):
                 'distance':cityIter[c1][c2].distance,
                 'time' : cityIter[c1][c2].distance*cityIter[c1][c2].speed,
                 'segments' : 1,
-                'scenic' : cityIter[c1][c2].distance
+                'scenic' : 1
             }
             cityMap[c1+c2] = cityMap[c2+c1] = options[sys.argv[3]]
         #else:
@@ -170,14 +174,15 @@ def getDetails(city1,city2):
 
 def isValid(state,city,function):
     hashVal = state.path[0]+city
+    funcVal = function(state,city)
     if hashVal in cityMap:
-        if not function(state,city)<=cityMap[hashVal]:
+        if not funcVal<=cityMap[hashVal]:
             return False
         else:
-            cityMap[hashVal] = function(state,city)
+            cityMap[hashVal] = funcVal
             return True
     else:
-        cityMap[hashVal] = function(state,city)
+        cityMap[hashVal] = funcVal
         return True
 
 def Successors(state,function):
@@ -191,16 +196,18 @@ def Successors(state,function):
 	    if function(state,city)<=maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 
 def search(endNode,funcID,srchID):
-    global iterDepth
+    global iterDepth,goals
     startState()
     function = funcPtr[funcID]
     srchFunc = srchPtr[srchID]
     while len(fringe)>0:
         for state in Successors(fringe.pop(),function):
+            #print state.path
+            #time.sleep(1)
             if state.path[-1]==endNode:
-                print state.path
-		print state.distance
-                goals.append(state.path)
+                #print state.path
+		#print state.distance
+                goals = state
                 update(state)
             srchFunc(state)
         srchID=="ids" and ids()
@@ -208,4 +215,9 @@ def search(endNode,funcID,srchID):
 parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
 search(sys.argv[2],sys.argv[3],sys.argv[4])
+if goals:
+    print goals.path
+    print goals.distance
+else:
+    print "Solution not Found"
 

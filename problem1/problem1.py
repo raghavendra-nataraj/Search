@@ -127,7 +127,7 @@ def parseFile(file):
     ifile = open(file,"r")
     for line in ifile:
         patMat = re.match(patCmp,line)
-        if patMat is not None:
+        if patMat is not None and int(patMat.group(4))!=0:
             c1 = patMat.group(1)#.split(',')[0]
             c2 = patMat.group(2)#.split(',')[0]
             cities.add(c1)

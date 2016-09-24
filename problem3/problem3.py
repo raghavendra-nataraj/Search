@@ -57,13 +57,13 @@ def isGoal(state):
             
 
 def solve(state):
-    global minResult
+    global minResult,goal
     fringe.append(state)
     while len(fringe)>0:
         for st in successors(fringe.pop()):
             if isGoal(st):
                 if len(st.st)<minResult:
-                    print st.st
+                    goal = st.st
                     minResult = len(st.st)
             fringe.append(st)
         
@@ -72,3 +72,5 @@ parseFile()
 initialState = []
 state = State(initialState,people)
 solve(state)
+pResult = [["Table"+str(ids+1)+"-"+ps] for ids in range(0,len(goal)) for ps in goal[ids]]
+print [len(goal)],pResult

@@ -191,7 +191,7 @@ def Successors(state,function):
 	oldDepth = state.depth
     return [State(addState(state,city),\
 	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
-	          state.time+cityIter[state.path[-1]][city].distance*cityIter[state.path[-1]][city].speed,heuristic(state,city))\
+	          state.time+cityIter[state.path[-1]][city].distance/float(cityIter[state.path[-1]][city].speed),heuristic(state,city))\
 	for city in getConnectedCity(state.path[-1]) \
 	    if function(state,city)<=maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 
@@ -216,8 +216,10 @@ parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
 search(sys.argv[2],sys.argv[3],sys.argv[4])
 if goals:
-    print goals.path
-    print goals.distance
+    print goals.distance,
+    print goals.time,
+    print ",".join(city for city in goals.path)
+    
 else:
     print "Solution not Found"
 

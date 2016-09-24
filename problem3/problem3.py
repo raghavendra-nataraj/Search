@@ -72,5 +72,9 @@ parseFile()
 initialState = []
 state = State(initialState,people)
 solve(state)
-pResult = [["Table"+str(ids+1)+"-"+ps] for ids in range(0,len(goal)) for ps in goal[ids]]
-print [len(goal)],pResult
+
+print len(goal),
+for idx in goal:
+    for person in idx:
+        print person,
+    print ",",

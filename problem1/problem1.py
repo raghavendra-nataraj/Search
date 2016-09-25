@@ -225,10 +225,10 @@ startCity = sys.argv[1]
 destinationCity = sys.argv[2]
 routingOption = sys.argv[3]
 routingAlgorithm = sys.argv[4]
-if destinationCity not in cityDet:
-    routingAlgorithm = "bfs"	
 parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
+if destinationCity not in cityDet:
+    routingAlgorithm = "bfs"	
 search(destinationCity,routingOption,routingAlgorithm)
 if goals:
     print goals.distance,

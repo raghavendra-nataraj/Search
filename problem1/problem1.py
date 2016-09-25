@@ -11,6 +11,7 @@ depth = 0
 oldDepth = 0
 maxVal = sys.maxint
 dScenic = sys.maxint
+goals = None
 class Road():
     def __init__(self,c1,c2,distance,speed,name):
         self.c1 = c1
@@ -42,18 +43,18 @@ def update(state):
 	'segments' : len(state.path),
 	'scenic' : len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])
     }
-    tempValue = options[sys.argv[3]]
+    tempValue = options[routingOption]
     if maxVal>tempValue:
 	maxVal = tempValue
     if state.distance<dScenic:
         dScenic = state.distance
 
 def heuristic(state,city1):
-    if city1 in cityDet:
+    if city1 in cityDet and destinationCity in cityDet:
         c1 = cityDet[city1]
     else:
         return state.hrst
-    c2 = cityDet[sys.argv[2]]
+    c2 = cityDet[destinationCity]
     return state.distance + sqrt((c1.lat-c2.lat)**2 + (c1.lon-c2.lon)**2)
 
 def getDistance(state,city):
@@ -95,7 +96,7 @@ def ids():
     	startState()
 
 def idsCheck(state):
-    if  sys.argv[4]=="ids" and state.depth>depth:
+    if  routingAlgorithm=="ids" and state.depth>depth:
         return False
     return True
 
@@ -152,7 +153,7 @@ def parseFile(file):
                 'segments' : 1,
                 'scenic' : 1
             }
-            cityMap[c1+c2] = cityMap[c2+c1] = options[sys.argv[3]]
+            cityMap[c1+c2] = cityMap[c2+c1] = options[routingOption]
         #else:
         #    print line
     ifile.close()
@@ -161,7 +162,7 @@ def startState():
     global depth
     depth+=1
     del fringe[:] 
-    state = State([sys.argv[1]],0,0,0,0,0)
+    state = State([startCity],0,0,0,0,0)
     fringe.append(state)
 
 def addState(state,city):
@@ -220,9 +221,15 @@ def search(endNode,funcID,srchID):
             srchFunc(state)
         srchID=="ids" and ids()
 
+startCity = sys.argv[1]
+destinationCity = sys.argv[2]
+routingOption = sys.argv[3]
+routingAlgorithm = sys.argv[4]
+if destinationCity not in cityDet:
+    routingAlgorithm = "bfs"	
 parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
-search(sys.argv[2],sys.argv[3],sys.argv[4])
+search(destinationCity,routingOption,routingAlgorithm)
 if goals:
     print goals.distance,
     print goals.time,

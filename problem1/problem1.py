@@ -19,12 +19,13 @@ class Road():
         self.speed = speed
         self.name = name
 class State():
-    def __init__(self,path,distance,depth,time,hrst):
+    def __init__(self,path,distance,depth,time,hrst,speed):
 	self.path = path
 	self.depth = depth
 	self.distance = distance
 	self.time = time
         self.hrst = hrst
+	self.speed = speed
 
 class CDetails():
     def __init__(self,name,lat,lon):
@@ -53,7 +54,7 @@ def heuristic(state,city1):
     else:
         return state.hrst
     c2 = cityDet[sys.argv[2]]
-    return sqrt((c1.lat-c2.lat)**2 + (c1.lon-c2.lon)**2)
+    return state.distance + sqrt((c1.lat-c2.lat)**2 + (c1.lon-c2.lon)**2)
 
 def getDistance(state,city):
     return (state.distance + cityIter[state.path[-1]][city].distance)
@@ -66,7 +67,7 @@ def getTime(state,city):
     return (state.time + cityDis.distance / float(cityDis.speed))
 
 def getScenic(state,city):
-    leng =  len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])
+    leng = state.speed
     if leng==maxVal:
         if state.distance>dScenic:
             return sys.maxint
@@ -160,7 +161,7 @@ def startState():
     global depth
     depth+=1
     del fringe[:] 
-    state = State([sys.argv[1]],0,0,0,heuristic(None,sys.argv[1]))
+    state = State([sys.argv[1]],0,0,0,0,0)
     fringe.append(state)
 
 def addState(state,city):
@@ -185,13 +186,20 @@ def isValid(state,city,function):
         cityMap[hashVal] = funcVal
         return True
 
+def isHighway(state,city):
+    if cityIter[state.path[-1]][city].speed>55:
+	return 0
+    else:
+	return 1
+
 def Successors(state,function):
     global oldDepth
     if state.depth>oldDepth:
 	oldDepth = state.depth
     return [State(addState(state,city),\
 	state.distance+cityIter[state.path[-1]][city].distance,state.depth+1,\
-	          state.time+cityIter[state.path[-1]][city].distance/float(cityIter[state.path[-1]][city].speed),heuristic(state,city))\
+	          state.time+cityIter[state.path[-1]][city].distance/float(cityIter[state.path[-1]][city].speed),heuristic(state,city),\
+	state.speed+isHighway(state,city))\
 	for city in getConnectedCity(state.path[-1]) \
 	    if function(state,city)<=maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 

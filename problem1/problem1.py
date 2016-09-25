@@ -63,7 +63,7 @@ def getNodes(state,city):
 
 def getTime(state,city):
     cityDis = cityIter[state.path[-1]][city]
-    return (state.time + cityDis.distance * cityDis.speed)
+    return (state.time + cityDis.distance / float(cityDis.speed))
 
 def getScenic(state,city):
     leng =  len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])

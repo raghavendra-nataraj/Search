@@ -1,3 +1,21 @@
+''' 1) which search algorithm seems to work best for each routing options
+
+   	distance ----- astar
+	time ----- bfs
+	scenic ----- astar
+	segments------ bfs
+
+-For distance as the routing option, A-star algorithm works best.
+	This is because,A-star algorithm selects the shortest path to traverse based on the heuristic function. Whereas the BFS traverses through all the successors till the goal is reached. 
+-For time as the routing option, BFS algorithm works best.
+	Time finds the fastest route, for a car that always travels at the speed limit. BFS works faster than A-star in this case, because the heuristic used in A-star uses Euclidean distance between cities and calculating this heuristic is slow compared to bfs with time as routing option.		
+-For scenic as the routing option, A-star algorithm works best.			
+-For segments as the routing option, bfs algorithm works best 
+	Least number of segments(highways) is returned faster in the case BFS ,as it finds the least number of nodes required to reach the goal.Where as a-star uses least distance heuristic      ''' 
+
+
+
+
 import re
 import sys
 import time

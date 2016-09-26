@@ -3,17 +3,17 @@ a. Valid State, S: Any valid city name
 b. Initial state, S0: Start city
 c. Goal State, G: {S| S is the destination city}
 d. Successor function, Succ(S) = {S' | S' is a list of valid city names connected directly to city S}
-   However, successor function will be different for routing option scenic as mentioned below:
-   Successor function, Succ(S) = {S' | S' is a list of valid city names connected directly to city S such that the speed limit on the connecting highways is 55 mph or greater}
+However, successor function will be different for routing option scenic as mentioned below:
+Successor function, Succ(S) = {S' | S' is a list of valid city names connected directly to city S such that the speed limit on the connecting highways is 55 mph or greater}
 e. Depending on the routing option cost function can be defined as:
-   For segments, Cost Function = Number of cities explored to reach the destination city
-   For distance, Cost Function = Distance travelled to reach the destination city
-   For time, Cost Function = Time taken to reach the destination city
-   For scenic, Cost Function = Distance travelled to reach the destination city
+For segments, Cost Function = Number of cities explored to reach the destination city
+For distance, Cost Function = Distance travelled to reach the destination city
+For time, Cost Function = Time taken to reach the destination city
+For scenic, Cost Function = Distance travelled to reach the destination city
 f. Heuristic function defined: Distance from the current city to the destination city
-  The below program measures the distance (based on the latitude and longitude) from the current city to the destination city. The one with the least distance is explored first. However, we have cities in data for which we do not have the corresponding latitude and longitude information. For all such cities, A* will not have any heuristic value and will thus work as BFS.
-  The above heuristic function is admissible since it calculates the direct distance between the current city and the destination city. If there exists a direct connecting highways between the current city and the destination, in that case the heuristic value will correctly estimate the distance for the goal state. In case, there is no direct highway between the two, even in that case, the direct distance will always be less than or equal to the sum of the distances of the segments between the current city and destination city. Thus, in this way, our heuristic function will never overestimate the goal and hence is admissible.
-
+The below program measures the distance (based on the latitude and longitude) from the current city to the destination city. The one with the least distance is explored first. However, we have cities in data for which we do not have the corresponding latitude and longitude information. For all such cities, A* will not have any heuristic value and will thus work as BFS.
+The above heuristic function is admissible since it calculates the direct distance between the current city and the destination city.
+If there exists a direct connecting highways between the current city and the destination, in that case the heuristic value will correctly estimate the distance for the goal state. If there is no direct highway between the two, even in that case, the direct distance will always be less than or equal to the sum of the distances of the segments between the current city and destination city. Thus, in this way, our heuristic function will never overestimate the goal and hence is admissible.
 
 1) which search algorithm seems to work best for each routing options
 
@@ -23,12 +23,23 @@ f. Heuristic function defined: Distance from the current city to the destination
 	segments------ bfs
 
 -For distance as the routing option, A-star algorithm works best.
-	This is because,A-star algorithm selects the shortest path to traverse based on the heuristic function. Whereas the BFS traverses through all the successors till the goal is reached. 
+	This is because,A-star algorithm selects the shortest path to traverse based on the heuristic function. Whereas the BFS traverses through all the successors till the goal is reached.
 -For time as the routing option, BFS algorithm works best.
 	Time finds the fastest route, for a car that always travels at the speed limit. BFS works faster than A-star in this case, because the heuristic used in A-star uses Euclidean distance between cities and calculating this heuristic is slow compared to bfs with time as routing option.		
 -For scenic as the routing option, A-star algorithm works best.			
 -For segments as the routing option, bfs algorithm works best 
-	Least number of segments(highways) is returned faster in the case BFS ,as it finds the least number of nodes required to reach the goal.Where as a-star uses least distance heuristic      ''' 
+	Least number of segments(highways) is returned faster in the case BFS ,as it finds the least number of nodes required to reach the goal.Where as a-star uses least distance heuristic
+
+2) Which algorithm is fastest in terms of the amount of computation time required by your program, and by how much, according to your experiments?
+
+We tested the algorithm for the 4 available options and A* turns out to perform the best in terms of the computation time required.
+The difference is quite significant with respect to DFS and IDS. With BFS, however, the difference is around that of 4 seconds.
+
+5) Supposing you start in Bloomington, which city should you travel to if you want to take the longest possible drive (in miles) that is still the shortest path to that city? (In other words, which city is furthest from Bloomington?)
+
+The furthest city from Bloomington is Skagway, Alaska. The total distance between the two is 4542.
+Thus, one can travel to Skagway, Alaska to take the longest possible drive from Bloomington.
+'''
 
 
 
@@ -265,7 +276,9 @@ if goals:
         c1 = goals.path[i-1]
         c2 = goals.path[i]
         cityObj = cityIter[c1][c2]
-        print c1,c2,cityObj.distance,cityObj.speed,round(cityObj.distance/float(cityObj.speed),4),cityObj.name
+        # print c1,c2,cityObj.distance,cityObj.speed,round(cityObj.distance/float(cityObj.speed),4),cityObj.name
+        print "Drive from city " + c1 + " to city " + c2 + " covering a distance of " + str(cityObj.distance) + " miles at a speed of " + str(cityObj.speed)\
+            + " mph " + "in " + str(round(cityObj.distance / float(cityObj.speed), 4)) + " hours on highway " + cityObj.name
     print "\n"
     print goals.distance,
     print round(goals.time,4),

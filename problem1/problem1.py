@@ -256,12 +256,17 @@ if destinationCity not in cityDet:
     routingAlgorithm = "bfs"
 if routingAlgorithm=="ids":
     while depth<len(cities):
-        startState()
         search(destinationCity,routingOption,routingAlgorithm)
 else:
     search(destinationCity,routingOption,routingAlgorithm)
 
 if goals:
+    for i in range(1,len(goals.path)):
+        c1 = goals.path[i-1]
+        c2 = goals.path[i]
+        cityObj = cityIter[c1][c2]
+        print c1,c2,cityObj.distance,cityObj.speed,round(cityObj.distance/float(cityObj.speed),4),cityObj.name
+    print "\n"
     print goals.distance,
     print round(goals.time,4),
     print len(goals.path),

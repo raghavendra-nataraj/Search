@@ -7,10 +7,9 @@ cityDet = {}
 cityIter = {}
 cityMap = {}
 fringe = []
-depth = 0
+depth = 1
 oldDepth = 0
 maxVal = sys.maxint
-dScenic = sys.maxint
 goals = None
 class Road():
     def __init__(self,c1,c2,distance,speed,name):
@@ -36,18 +35,16 @@ class CDetails():
 	
 
 def update(state):
-    global maxVal,dScenic
+    global maxVal
     options = {
 	'distance':state.distance,
 	'time' : state.time,
 	'segments' : len(state.path),
-	'scenic' : len([state.path[i] for i in range(1,len(state.path))  if cityIter[state.path[i-1]][state.path[i]].speed>=55])
+	'scenic' : state.speed
     }
     tempValue = options[routingOption]
     if maxVal>tempValue:
 	maxVal = tempValue
-    if state.distance<dScenic:
-        dScenic = state.distance
 
 def heuristic(state,city1):
     if city1 in cityDet and destinationCity in cityDet:
@@ -69,12 +66,7 @@ def getTime(state,city):
 
 def getScenic(state,city):
     leng = state.speed
-    if leng==maxVal:
-        if state.distance>dScenic:
-            return sys.maxint
-    else:
-        return leng
-    #return getDistance(state,city)
+    return leng
 
 def dfs(state):
     fringe.append(state)
@@ -91,8 +83,9 @@ def getkey(state):
     return state.distance + state.hrst
 
 def ids():
-    global fringe,oldDepth
+    global fringe,oldDepth,depth
     if len(fringe)==0 and depth!=oldDepth:
+        depth+=1
     	startState()
 
 def idsCheck(state):
@@ -153,15 +146,16 @@ def parseFile(file):
                 'segments' : 1,
                 'scenic' : 1
             }
-            cityMap[c1+c2] = cityMap[c2+c1] = options[routingOption]
         #else:
         #    print line
     ifile.close()
 
 def startState():
-    global depth
+    global depth,cityMap
     depth+=1
-    del fringe[:] 
+    cityMap = {}
+    del fringe[:]
+    #maxVal = sys.maxint
     state = State([startCity],0,0,0,0,0)
     fringe.append(state)
 
@@ -178,7 +172,7 @@ def isValid(state,city,function):
     hashVal = state.path[0]+city
     funcVal = function(state,city)
     if hashVal in cityMap:
-        if not funcVal<=cityMap[hashVal]:
+        if not funcVal<cityMap[hashVal]:
             return False
         else:
             cityMap[hashVal] = funcVal
@@ -188,10 +182,10 @@ def isValid(state,city,function):
         return True
 
 def isHighway(state,city):
-    if cityIter[state.path[-1]][city].speed>55:
-	return 0
-    else:
+    if cityIter[state.path[-1]][city].speed>=55:
 	return 1
+    else:
+	return 0
 
 def Successors(state,function):
     global oldDepth
@@ -202,24 +196,20 @@ def Successors(state,function):
 	          state.time+cityIter[state.path[-1]][city].distance/float(cityIter[state.path[-1]][city].speed),heuristic(state,city),\
 	state.speed+isHighway(state,city))\
 	for city in getConnectedCity(state.path[-1]) \
-	    if function(state,city)<=maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
+	    if function(state,city)<maxVal and city not in state.path and isValid(state,city,function) and idsCheck(state)]
 
 def search(endNode,funcID,srchID):
-    global iterDepth,goals
+    global goals
     startState()
+    #print depth
     function = funcPtr[funcID]
     srchFunc = srchPtr[srchID]
     while len(fringe)>0:
         for state in Successors(fringe.pop(),function):
-            #print state.path
-            #time.sleep(1)
             if state.path[-1]==endNode:
-                #print state.path
-		#print state.distance
                 goals = state
                 update(state)
             srchFunc(state)
-        srchID=="ids" and ids()
 
 startCity = sys.argv[1]
 destinationCity = sys.argv[2]
@@ -228,11 +218,18 @@ routingAlgorithm = sys.argv[4]
 parseFile("road-segments.txt")
 parseCityFile("city-gps.txt")
 if destinationCity not in cityDet:
-    routingAlgorithm = "bfs"	
-search(destinationCity,routingOption,routingAlgorithm)
+    routingAlgorithm = "bfs"
+if routingAlgorithm=="ids":
+    while depth<len(cities):
+        startState()
+        search(destinationCity,routingOption,routingAlgorithm)
+else:
+    search(destinationCity,routingOption,routingAlgorithm)
+
 if goals:
     print goals.distance,
-    print goals.time,
+    print round(goals.time,4),
+    print len(goals.path),
     print ",".join(city for city in goals.path)
     
 else:

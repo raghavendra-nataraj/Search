@@ -34,15 +34,23 @@ If there exists a direct connecting highways between the current city and the de
 
 We tested the algorithm for the 4 available options and A* turns out to perform the best in terms of the computation time required.
 The difference is quite significant with respect to DFS and IDS. With BFS, however, the difference is around that of 4 seconds.
+
 3)Which algorithm requires the least memory, and by how much, according to your
 experiments?
 
-astar uses the least memory because the maximum length of fringe at anytime for the longest path(Skagway) is 230 whereas the other algorithm bfs is around 5957
+A* uses the least memory because the maximum length of fringe at anytime for the longest path, say Bloomington to Skagway is 230
+whereas for the other algorithm, say BFS, it is around 5957. If we compare to IDS, the memory requirement of IDS will be same as BFS in the worst case.
+Thus, in a given case, A* will have the least memory requirement.
 
-4) Which heuristic function did you use, how good is it, and how might you make it
-better?
+4) Which heuristic function did you use, how good is it, and how might you make it better?
 
-We used the euclidean distance as our heuristic.
+We used the euclidean distance as our heuristic. On using this as the heuristic function, the algorithm runs pretty fast.
+Even for one of the longest distances, i.e, Bloomington to Skagway, the algorithm runs efficiently for A* and delivers result in 0.45 seconds.
+Whereas for BFS ,which does not use the heuristic function, the algorithm takes 2.5 seconds to deliver the result.
+Thus, it shows the difference this heuristic function makes.
+In the current implementation, we have taken the path travelled so far plus the heuristic function value to determine the best possible successor.
+Instead of giving equal weightage to the path travelled, if we reduce it by some percentage, say, if we take 0.8 * value of the path plus the heuristic value,
+we might get results faster.
 
 5) Supposing you start in Bloomington, which city should you travel to if you want to take the longest possible drive (in miles) that is still the shortest path to that city? (In other words, which city is furthest from Bloomington?)
 

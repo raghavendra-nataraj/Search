@@ -1,4 +1,21 @@
-''' 1) which search algorithm seems to work best for each routing options
+''' Abstracttion for problem 1:
+a. Valid State, S: Any valid city name
+b. Initial state, S0: Start city
+c. Goal State, G: {S| S is the destination city}
+d. Successor function, Succ(S) = {S' | S' is a list of valid city names connected directly to city S}
+   However, successor function will be different for routing option scenic as mentioned below:
+   Successor function, Succ(S) = {S' | S' is a list of valid city names connected directly to city S such that the speed limit on the connecting highways is 55 mph or greater}
+e. Depending on the routing option cost function can be defined as:
+   For segments, Cost Function = Number of cities explored to reach the destination city
+   For distance, Cost Function = Distance travelled to reach the destination city
+   For time, Cost Function = Time taken to reach the destination city
+   For scenic, Cost Function = Distance travelled to reach the destination city
+f. Heuristic function defined: Distance from the current city to the destination city
+  The below program measures the distance (based on the latitude and longitude) from the current city to the destination city. The one with the least distance is explored first. However, we have cities in data for which we do not have the corresponding latitude and longitude information. For all such cities, A* will not have any heuristic value and will thus work as BFS.
+  The above heuristic function is admissible since it calculates the direct distance between the current city and the destination city. If there exists a direct connecting highways between the current city and the destination, in that case the heuristic value will correctly estimate the distance for the goal state. In case, there is no direct highway between the two, even in that case, the direct distance will always be less than or equal to the sum of the distances of the segments between the current city and destination city. Thus, in this way, our heuristic function will never overestimate the goal and hence is admissible.
+
+
+1) which search algorithm seems to work best for each routing options
 
    	distance ----- astar
 	time ----- bfs

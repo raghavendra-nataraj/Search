@@ -34,15 +34,21 @@ If there exists a direct connecting highways between the current city and the de
 
 We tested the algorithm for the 4 available options and A* turns out to perform the best in terms of the computation time required.
 The difference is quite significant with respect to DFS and IDS. With BFS, however, the difference is around that of 4 seconds.
+3)Which algorithm requires the least memory, and by how much, according to your
+experiments?
+
+astar uses the least memory because the maximum length of fringe at anytime for the longest path(Skagway) is 230 whereas the other algorithm bfs is around 5957
+
+4) Which heuristic function did you use, how good is it, and how might you make it
+better?
+
+We used the euclidean distance as our heuristic.
 
 5) Supposing you start in Bloomington, which city should you travel to if you want to take the longest possible drive (in miles) that is still the shortest path to that city? (In other words, which city is furthest from Bloomington?)
 
 The furthest city from Bloomington is Skagway, Alaska. The total distance between the two is 4542.
 Thus, one can travel to Skagway, Alaska to take the longest possible drive from Bloomington.
 '''
-
-
-
 
 import re
 import sys
